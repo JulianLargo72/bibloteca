@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { librosApi, personasApi, prestamosApi } from "@/lib/api";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import LibrosSection from "@/features/libros/LibrosSection";
 import LibroDialog from "@/features/libros/LibroDialog";
@@ -7,6 +6,9 @@ import PersonasSection from "@/features/personas/PersonasSection";
 import PersonaDialog from "@/features/personas/PersonaDialog";
 import PrestamosSection from "@/features/prestamos/PrestamosSection";
 import PrestamoDialog from "@/features/prestamos/PrestamoDialog";
+import { useLibros } from "@/features/libros/useLibros";
+import { usePersonas } from "@/features/personas/usePersonas";
+import { usePrestamos } from "@/features/prestamos/usePrestamos";
 
 const sections = [
   { id: "libros", label: "Libros" },
@@ -26,10 +28,33 @@ const emptyPrestamo = {
 
 function App() {
   const [active, setActive] = useState("libros");
-  const [libros, setLibros] = useState([]);
-  const [personas, setPersonas] = useState([]);
-  const [prestamos, setPrestamos] = useState([]);
-  const [error, setError] = useState("");
+  const {
+    libros,
+    loading: librosLoading,
+    error: librosError,
+    createLibro,
+    updateLibro,
+    removeLibro,
+    clearError: clearLibrosError,
+  } = useLibros();
+  const {
+    personas,
+    loading: personasLoading,
+    error: personasError,
+    createPersona,
+    updatePersona,
+    removePersona,
+    clearError: clearPersonasError,
+  } = usePersonas();
+  const {
+    prestamos,
+    loading: prestamosLoading,
+    error: prestamosError,
+    createPrestamo,
+    updatePrestamo,
+    removePrestamo,
+    clearError: clearPrestamosError,
+  } = usePrestamos();
 
   const [libroDialog, setLibroDialog] = useState(false);
   const [personaDialog, setPersonaDialog] = useState(false);
@@ -43,93 +68,56 @@ function App() {
   const [editingPersonaId, setEditingPersonaId] = useState(null);
   const [editingPrestamoId, setEditingPrestamoId] = useState(null);
 
-  const refreshAll = async () => {
-    try {
-      const [librosData, personasData, prestamosData] = await Promise.all([
-        librosApi.list(),
-        personasApi.list(),
-        prestamosApi.list(),
-      ]);
-      setLibros(librosData);
-      setPersonas(personasData);
-      setPrestamos(prestamosData);
-      setError("");
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  useEffect(() => {
-    refreshAll();
-  }, []);
+  const error = librosError || personasError || prestamosError;
+  const isLoading = librosLoading || personasLoading || prestamosLoading;
 
   const handleLibroSave = async () => {
-    try {
-      if (editingLibroId) {
-        await librosApi.update(editingLibroId, libroForm);
-      } else {
-        await librosApi.create(libroForm);
-      }
-      setLibroDialog(false);
-      setLibroForm(emptyLibro);
-      setEditingLibroId(null);
-      refreshAll();
-    } catch (err) {
-      setError(err.message);
+    if (editingLibroId) {
+      await updateLibro(editingLibroId, libroForm);
+    } else {
+      await createLibro(libroForm);
     }
+    setLibroDialog(false);
+    setLibroForm(emptyLibro);
+    setEditingLibroId(null);
   };
 
   const handlePersonaSave = async () => {
-    try {
-      if (editingPersonaId) {
-        await personasApi.update(editingPersonaId, personaForm);
-      } else {
-        await personasApi.create(personaForm);
-      }
-      setPersonaDialog(false);
-      setPersonaForm(emptyPersona);
-      setEditingPersonaId(null);
-      refreshAll();
-    } catch (err) {
-      setError(err.message);
+    if (editingPersonaId) {
+      await updatePersona(editingPersonaId, personaForm);
+    } else {
+      await createPersona(personaForm);
     }
+    setPersonaDialog(false);
+    setPersonaForm(emptyPersona);
+    setEditingPersonaId(null);
   };
 
   const handlePrestamoSave = async () => {
-    try {
-      const payload = {
-        ...prestamoForm,
-        libro_id: Number(prestamoForm.libro_id),
-        persona_id: Number(prestamoForm.persona_id),
-      };
-      if (editingPrestamoId) {
-        await prestamosApi.update(editingPrestamoId, payload);
-      } else {
-        await prestamosApi.create(payload);
-      }
-      setPrestamoDialog(false);
-      setPrestamoForm(emptyPrestamo);
-      setEditingPrestamoId(null);
-      refreshAll();
-    } catch (err) {
-      setError(err.message);
+    const payload = {
+      ...prestamoForm,
+      libro_id: Number(prestamoForm.libro_id),
+      persona_id: Number(prestamoForm.persona_id),
+    };
+    if (editingPrestamoId) {
+      await updatePrestamo(editingPrestamoId, payload);
+    } else {
+      await createPrestamo(payload);
     }
+    setPrestamoDialog(false);
+    setPrestamoForm(emptyPrestamo);
+    setEditingPrestamoId(null);
   };
 
   const handleDelete = async (type, id) => {
-    try {
-      if (type === "libro") {
-        await librosApi.remove(id);
-      }
-      if (type === "persona") {
-        await personasApi.remove(id);
-      }
-      if (type === "prestamo") {
-        await prestamosApi.remove(id);
-      }
-      refreshAll();
-    } catch (err) {
-      setError(err.message);
+    if (type === "libro") {
+      await removeLibro(id);
+    }
+    if (type === "persona") {
+      await removePersona(id);
+    }
+    if (type === "prestamo") {
+      await removePrestamo(id);
     }
   };
 
@@ -175,6 +163,12 @@ function App() {
                 {section.label}
               </Button>
             ))}
+            {isLoading && (
+              <span className="ml-auto flex items-center gap-2 rounded-full border border-clay/70 bg-white/70 px-3 py-1 text-xs text-ink/70">
+                <span className="inline-flex size-2 animate-pulse rounded-full bg-copper" />
+                Sincronizando
+              </span>
+            )}
           </div>
         </div>
         {error && (
@@ -255,7 +249,12 @@ function App() {
 
       <LibroDialog
         open={libroDialog}
-        onOpenChange={setLibroDialog}
+        onOpenChange={(value) => {
+          if (!value) {
+            clearLibrosError();
+          }
+          setLibroDialog(value);
+        }}
         isEditing={Boolean(editingLibroId)}
         form={libroForm}
         onChange={handleLibroChange}
@@ -264,7 +263,12 @@ function App() {
 
       <PersonaDialog
         open={personaDialog}
-        onOpenChange={setPersonaDialog}
+        onOpenChange={(value) => {
+          if (!value) {
+            clearPersonasError();
+          }
+          setPersonaDialog(value);
+        }}
         isEditing={Boolean(editingPersonaId)}
         form={personaForm}
         onChange={handlePersonaChange}
@@ -273,7 +277,12 @@ function App() {
 
       <PrestamoDialog
         open={prestamoDialog}
-        onOpenChange={setPrestamoDialog}
+        onOpenChange={(value) => {
+          if (!value) {
+            clearPrestamosError();
+          }
+          setPrestamoDialog(value);
+        }}
         isEditing={Boolean(editingPrestamoId)}
         form={prestamoForm}
         libros={libros}
