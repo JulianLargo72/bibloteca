@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
     extend: {
@@ -51,6 +51,7 @@ module.exports = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
+        sans: ["'Source Sans 3'", "sans-serif"],
         display: ["'Fraunces'", "serif"],
         body: ["'Source Sans 3'", "sans-serif"],
       },

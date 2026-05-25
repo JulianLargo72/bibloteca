@@ -9,11 +9,13 @@ import PrestamoDialog from "@/features/prestamos/PrestamoDialog";
 import { useLibros } from "@/features/libros/useLibros";
 import { usePersonas } from "@/features/personas/usePersonas";
 import { usePrestamos } from "@/features/prestamos/usePrestamos";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
+import { uiText } from "@/config/uiText";
 
 const sections = [
-  { id: "libros", label: "Libros" },
-  { id: "personas", label: "Personas" },
-  { id: "prestamos", label: "Prestamos" },
+  { id: "libros", label: uiText.sections.libros.label },
+  { id: "personas", label: uiText.sections.personas.label },
+  { id: "prestamos", label: uiText.sections.prestamos.label },
 ];
 
 const emptyLibro = { titulo: "", autor: "", isbn: "", stock: 1 };
@@ -64,14 +66,41 @@ function App() {
   const [personaForm, setPersonaForm] = useState(emptyPersona);
   const [prestamoForm, setPrestamoForm] = useState(emptyPrestamo);
 
+  const [libroErrors, setLibroErrors] = useState({});
+  const [personaErrors, setPersonaErrors] = useState({});
+  const [prestamoErrors, setPrestamoErrors] = useState({});
+
   const [editingLibroId, setEditingLibroId] = useState(null);
   const [editingPersonaId, setEditingPersonaId] = useState(null);
   const [editingPrestamoId, setEditingPrestamoId] = useState(null);
+
+  const [confirmState, setConfirmState] = useState({
+    open: false,
+    type: null,
+    id: null,
+  });
 
   const error = librosError || personasError || prestamosError;
   const isLoading = librosLoading || personasLoading || prestamosLoading;
 
   const handleLibroSave = async () => {
+    const errors = {};
+    if (!libroForm.titulo.trim()) {
+      errors.titulo = uiText.validation.required;
+    }
+    if (!libroForm.autor.trim()) {
+      errors.autor = uiText.validation.required;
+    }
+    if (!libroForm.isbn.trim()) {
+      errors.isbn = uiText.validation.required;
+    }
+    if (Number.isNaN(libroForm.stock) || libroForm.stock < 0) {
+      errors.stock = uiText.validation.required;
+    }
+    setLibroErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
     if (editingLibroId) {
       await updateLibro(editingLibroId, libroForm);
     } else {
@@ -80,9 +109,27 @@ function App() {
     setLibroDialog(false);
     setLibroForm(emptyLibro);
     setEditingLibroId(null);
+    setLibroErrors({});
   };
 
   const handlePersonaSave = async () => {
+    const errors = {};
+    if (!personaForm.nombre.trim()) {
+      errors.nombre = uiText.validation.required;
+    }
+    if (!personaForm.apellido.trim()) {
+      errors.apellido = uiText.validation.required;
+    }
+    if (!personaForm.email.trim()) {
+      errors.email = uiText.validation.required;
+    }
+    if (!personaForm.telefono.trim()) {
+      errors.telefono = uiText.validation.required;
+    }
+    setPersonaErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
     if (editingPersonaId) {
       await updatePersona(editingPersonaId, personaForm);
     } else {
@@ -91,6 +138,7 @@ function App() {
     setPersonaDialog(false);
     setPersonaForm(emptyPersona);
     setEditingPersonaId(null);
+    setPersonaErrors({});
   };
 
   const handlePrestamoSave = async () => {
@@ -99,6 +147,23 @@ function App() {
       libro_id: Number(prestamoForm.libro_id),
       persona_id: Number(prestamoForm.persona_id),
     };
+    const errors = {};
+    if (!prestamoForm.libro_id) {
+      errors.libro_id = uiText.validation.required;
+    }
+    if (!prestamoForm.persona_id) {
+      errors.persona_id = uiText.validation.required;
+    }
+    if (!prestamoForm.fecha_prestamo) {
+      errors.fecha_prestamo = uiText.validation.required;
+    }
+    if (!prestamoForm.estado) {
+      errors.estado = uiText.validation.required;
+    }
+    setPrestamoErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
     if (editingPrestamoId) {
       await updatePrestamo(editingPrestamoId, payload);
     } else {
@@ -107,6 +172,7 @@ function App() {
     setPrestamoDialog(false);
     setPrestamoForm(emptyPrestamo);
     setEditingPrestamoId(null);
+    setPrestamoErrors({});
   };
 
   const handleDelete = async (type, id) => {
@@ -119,6 +185,15 @@ function App() {
     if (type === "prestamo") {
       await removePrestamo(id);
     }
+  };
+
+  const requestDelete = (type, id) => {
+    setConfirmState({ open: true, type, id });
+  };
+
+  const confirmDelete = async () => {
+    await handleDelete(confirmState.type, confirmState.id);
+    setConfirmState({ open: false, type: null, id: null });
   };
 
   const handleLibroChange = (field, value) => {
@@ -139,14 +214,13 @@ function App() {
         <div className="rounded-2xl border border-clay/60 bg-paper/90 p-8 shadow-float">
           <div className="flex flex-col gap-3">
             <span className="text-sm uppercase tracking-[0.2em] text-bronze">
-              Sistema de gestion
+              {uiText.header.eyebrow}
             </span>
             <h1 className="font-display text-4xl text-ink sm:text-5xl">
-              Biblioteca Municipal
+              {uiText.header.title}
             </h1>
             <p className="max-w-2xl text-sm text-ink/70">
-              Administra libros, personas y prestamos con un flujo rapido. Todos los
-              cambios se sincronizan en tiempo real.
+              {uiText.header.subtitle}
             </p>
           </div>
           <div className="mt-6 flex flex-wrap gap-2">
@@ -166,7 +240,7 @@ function App() {
             {isLoading && (
               <span className="ml-auto flex items-center gap-2 rounded-full border border-clay/70 bg-white/70 px-3 py-1 text-xs text-ink/70">
                 <span className="inline-flex size-2 animate-pulse rounded-full bg-copper" />
-                Sincronizando
+                {uiText.status.syncing}
               </span>
             )}
           </div>
@@ -184,6 +258,7 @@ function App() {
             libros={libros}
             onCreate={() => {
               setLibroForm(emptyLibro);
+              setLibroErrors({});
               setEditingLibroId(null);
               setLibroDialog(true);
             }}
@@ -194,10 +269,11 @@ function App() {
                 isbn: libro.isbn,
                 stock: libro.stock,
               });
+              setLibroErrors({});
               setEditingLibroId(libro.id);
               setLibroDialog(true);
             }}
-            onDelete={(id) => handleDelete("libro", id)}
+            onDelete={(id) => requestDelete("libro", id)}
           />
         )}
 
@@ -206,6 +282,7 @@ function App() {
             personas={personas}
             onCreate={() => {
               setPersonaForm(emptyPersona);
+              setPersonaErrors({});
               setEditingPersonaId(null);
               setPersonaDialog(true);
             }}
@@ -216,10 +293,11 @@ function App() {
                 email: persona.email,
                 telefono: persona.telefono,
               });
+              setPersonaErrors({});
               setEditingPersonaId(persona.id);
               setPersonaDialog(true);
             }}
-            onDelete={(id) => handleDelete("persona", id)}
+            onDelete={(id) => requestDelete("persona", id)}
           />
         )}
 
@@ -228,6 +306,7 @@ function App() {
             prestamos={prestamos}
             onCreate={() => {
               setPrestamoForm(emptyPrestamo);
+              setPrestamoErrors({});
               setEditingPrestamoId(null);
               setPrestamoDialog(true);
             }}
@@ -239,10 +318,11 @@ function App() {
                 fecha_devolucion: prestamo.fecha_devolucion || "",
                 estado: prestamo.estado,
               });
+              setPrestamoErrors({});
               setEditingPrestamoId(prestamo.id);
               setPrestamoDialog(true);
             }}
-            onDelete={(id) => handleDelete("prestamo", id)}
+            onDelete={(id) => requestDelete("prestamo", id)}
           />
         )}
       </main>
@@ -252,11 +332,14 @@ function App() {
         onOpenChange={(value) => {
           if (!value) {
             clearLibrosError();
+            setLibroErrors({});
           }
           setLibroDialog(value);
         }}
         isEditing={Boolean(editingLibroId)}
         form={libroForm}
+        errors={libroErrors}
+        saving={librosLoading}
         onChange={handleLibroChange}
         onSave={handleLibroSave}
       />
@@ -266,11 +349,14 @@ function App() {
         onOpenChange={(value) => {
           if (!value) {
             clearPersonasError();
+            setPersonaErrors({});
           }
           setPersonaDialog(value);
         }}
         isEditing={Boolean(editingPersonaId)}
         form={personaForm}
+        errors={personaErrors}
+        saving={personasLoading}
         onChange={handlePersonaChange}
         onSave={handlePersonaSave}
       />
@@ -280,6 +366,7 @@ function App() {
         onOpenChange={(value) => {
           if (!value) {
             clearPrestamosError();
+            setPrestamoErrors({});
           }
           setPrestamoDialog(value);
         }}
@@ -287,8 +374,21 @@ function App() {
         form={prestamoForm}
         libros={libros}
         personas={personas}
+        errors={prestamoErrors}
+        saving={prestamosLoading}
         onChange={handlePrestamoChange}
         onSave={handlePrestamoSave}
+      />
+
+      <ConfirmDialog
+        open={confirmState.open}
+        onOpenChange={(value) =>
+          setConfirmState((prev) => ({ ...prev, open: value }))
+        }
+        title={uiText.dialogs.confirmDelete.title}
+        description={uiText.dialogs.confirmDelete.description}
+        onConfirm={confirmDelete}
+        loading={isLoading}
       />
     </div>
   );

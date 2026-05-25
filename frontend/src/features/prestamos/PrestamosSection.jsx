@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { uiText } from "@/config/uiText";
 import {
   Table,
   TableBody,
@@ -14,15 +15,17 @@ function PrestamosSection({ prestamos, onCreate, onEdit, onDelete }) {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <h2 className="font-display text-2xl text-ink">Prestamos</h2>
+            <h2 className="font-display text-2xl text-ink">
+              {uiText.sections.prestamos.title}
+            </h2>
             <span className="rounded-full bg-clay/40 px-3 py-1 text-xs text-ink/70">
               {prestamos.length} registros
             </span>
           </div>
-          <p className="text-sm text-ink/60">Coordina salidas y devoluciones.</p>
+          <p className="text-sm text-ink/60">{uiText.sections.prestamos.subtitle}</p>
         </div>
         <Button className="bg-copper text-paper hover:bg-bronze" onClick={onCreate}>
-          Nuevo prestamo
+          {uiText.sections.prestamos.create}
         </Button>
       </div>
 
@@ -51,13 +54,13 @@ function PrestamosSection({ prestamos, onCreate, onEdit, onDelete }) {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button size="sm" variant="outline" onClick={() => onEdit(prestamo)}>
-                      Editar
+                      {uiText.actions.edit}
                     </Button>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={() => onDelete(prestamo.id)}>
-                      Eliminar
+                      {uiText.actions.delete}
                     </Button>
                   </div>
                 </TableCell>
@@ -67,7 +70,7 @@ function PrestamosSection({ prestamos, onCreate, onEdit, onDelete }) {
         </Table>
         {!prestamos.length && (
           <p className="mt-6 text-center text-sm text-ink/60">
-            Aun no hay prestamos registrados.
+            {uiText.sections.prestamos.empty}
           </p>
         )}
       </div>

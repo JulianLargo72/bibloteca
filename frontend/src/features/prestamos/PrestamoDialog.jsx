@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { uiText } from "@/config/uiText";
 
 function PrestamoDialog({
   open,
@@ -25,9 +26,15 @@ function PrestamoDialog({
   form,
   libros,
   personas,
+  errors,
+  saving,
   onChange,
   onSave,
 }) {
+  const fieldClass = (field) =>
+    errors?.[field]
+      ? "border-destructive focus-visible:ring-destructive/40"
+      : "";
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
@@ -38,11 +45,11 @@ function PrestamoDialog({
             </div>
             <div>
               <DialogTitle>
-                {isEditing ? "Editar prestamo" : "Nuevo prestamo"}
+                {isEditing
+                  ? uiText.dialogs.prestamo.titleEdit
+                  : uiText.dialogs.prestamo.titleNew}
               </DialogTitle>
-              <DialogDescription>
-                Selecciona libro, persona y fechas.
-              </DialogDescription>
+              <DialogDescription>{uiText.dialogs.prestamo.description}</DialogDescription>
             </div>
           </div>
         </DialogHeader>
@@ -52,7 +59,7 @@ function PrestamoDialog({
             <Select
               value={form.libro_id}
               onValueChange={(value) => onChange("libro_id", value)}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className={`w-full ${fieldClass("libro_id")}`}>
                 <SelectValue placeholder="Selecciona un libro" />
               </SelectTrigger>
               <SelectContent>
@@ -63,13 +70,16 @@ function PrestamoDialog({
                 ))}
               </SelectContent>
             </Select>
+            {errors?.libro_id && (
+              <p className="text-xs text-destructive">{errors.libro_id}</p>
+            )}
           </div>
           <div className="grid gap-2">
             <Label>Persona</Label>
             <Select
               value={form.persona_id}
               onValueChange={(value) => onChange("persona_id", value)}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className={`w-full ${fieldClass("persona_id")}`}>
                 <SelectValue placeholder="Selecciona una persona" />
               </SelectTrigger>
               <SelectContent>
@@ -80,6 +90,9 @@ function PrestamoDialog({
                 ))}
               </SelectContent>
             </Select>
+            {errors?.persona_id && (
+              <p className="text-xs text-destructive">{errors.persona_id}</p>
+            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="fecha_prestamo">Fecha prestamo</Label>
@@ -88,7 +101,11 @@ function PrestamoDialog({
               type="date"
               value={form.fecha_prestamo}
               onChange={(event) => onChange("fecha_prestamo", event.target.value)}
+              className={fieldClass("fecha_prestamo")}
             />
+            {errors?.fecha_prestamo && (
+              <p className="text-xs text-destructive">{errors.fecha_prestamo}</p>
+            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="fecha_devolucion">Fecha devolucion</Label>
@@ -101,8 +118,10 @@ function PrestamoDialog({
           </div>
           <div className="grid gap-2 sm:col-span-2">
             <Label>Estado</Label>
-            <Select value={form.estado} onValueChange={(value) => onChange("estado", value)}>
-              <SelectTrigger className="w-full">
+            <Select
+              value={form.estado}
+              onValueChange={(value) => onChange("estado", value)}>
+              <SelectTrigger className={`w-full ${fieldClass("estado")}`}>
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
               <SelectContent>
@@ -110,14 +129,21 @@ function PrestamoDialog({
                 <SelectItem value="devuelto">Devuelto</SelectItem>
               </SelectContent>
             </Select>
+            {errors?.estado && (
+              <p className="text-xs text-destructive">{errors.estado}</p>
+            )}
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={saving}
+          >
+            {uiText.actions.cancel}
           </Button>
-          <Button className="bg-ink text-paper" onClick={onSave}>
-            Guardar
+          <Button className="bg-ink text-paper" onClick={onSave} disabled={saving}>
+            {uiText.actions.save}
           </Button>
         </DialogFooter>
       </DialogContent>

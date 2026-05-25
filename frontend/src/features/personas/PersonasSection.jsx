@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { uiText } from "@/config/uiText";
 import {
   Table,
   TableBody,
@@ -14,15 +15,17 @@ function PersonasSection({ personas, onCreate, onEdit, onDelete }) {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <h2 className="font-display text-2xl text-ink">Personas</h2>
+            <h2 className="font-display text-2xl text-ink">
+              {uiText.sections.personas.title}
+            </h2>
             <span className="rounded-full bg-clay/40 px-3 py-1 text-xs text-ink/70">
               {personas.length} registros
             </span>
           </div>
-          <p className="text-sm text-ink/60">Controla lectores y contactos.</p>
+          <p className="text-sm text-ink/60">{uiText.sections.personas.subtitle}</p>
         </div>
         <Button className="bg-copper text-paper hover:bg-bronze" onClick={onCreate}>
-          Nueva persona
+          {uiText.sections.personas.create}
         </Button>
       </div>
 
@@ -49,13 +52,13 @@ function PersonasSection({ personas, onCreate, onEdit, onDelete }) {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button size="sm" variant="outline" onClick={() => onEdit(persona)}>
-                      Editar
+                      {uiText.actions.edit}
                     </Button>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={() => onDelete(persona.id)}>
-                      Eliminar
+                      {uiText.actions.delete}
                     </Button>
                   </div>
                 </TableCell>
@@ -65,7 +68,7 @@ function PersonasSection({ personas, onCreate, onEdit, onDelete }) {
         </Table>
         {!personas.length && (
           <p className="mt-6 text-center text-sm text-ink/60">
-            Aun no hay personas registradas.
+            {uiText.sections.personas.empty}
           </p>
         )}
       </div>

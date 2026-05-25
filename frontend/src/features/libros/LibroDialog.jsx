@@ -10,8 +10,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { uiText } from "@/config/uiText";
 
-function LibroDialog({ open, onOpenChange, isEditing, form, onChange, onSave }) {
+function LibroDialog({
+  open,
+  onOpenChange,
+  isEditing,
+  form,
+  errors,
+  saving,
+  onChange,
+  onSave,
+}) {
+  const fieldClass = (field) =>
+    errors?.[field]
+      ? "border-destructive focus-visible:ring-destructive/40"
+      : "";
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
@@ -21,10 +35,10 @@ function LibroDialog({ open, onOpenChange, isEditing, form, onChange, onSave }) 
               <BookOpen className="size-5" />
             </div>
             <div>
-              <DialogTitle>{isEditing ? "Editar libro" : "Nuevo libro"}</DialogTitle>
-              <DialogDescription>
-                Completa la informacion para el catalogo.
-              </DialogDescription>
+              <DialogTitle>
+                {isEditing ? uiText.dialogs.libro.titleEdit : uiText.dialogs.libro.titleNew}
+              </DialogTitle>
+              <DialogDescription>{uiText.dialogs.libro.description}</DialogDescription>
             </div>
           </div>
         </DialogHeader>
@@ -35,7 +49,11 @@ function LibroDialog({ open, onOpenChange, isEditing, form, onChange, onSave }) 
               id="titulo"
               value={form.titulo}
               onChange={(event) => onChange("titulo", event.target.value)}
+              className={fieldClass("titulo")}
             />
+            {errors?.titulo && (
+              <p className="text-xs text-destructive">{errors.titulo}</p>
+            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="autor">Autor</Label>
@@ -43,7 +61,11 @@ function LibroDialog({ open, onOpenChange, isEditing, form, onChange, onSave }) 
               id="autor"
               value={form.autor}
               onChange={(event) => onChange("autor", event.target.value)}
+              className={fieldClass("autor")}
             />
+            {errors?.autor && (
+              <p className="text-xs text-destructive">{errors.autor}</p>
+            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="isbn">ISBN</Label>
@@ -51,7 +73,11 @@ function LibroDialog({ open, onOpenChange, isEditing, form, onChange, onSave }) 
               id="isbn"
               value={form.isbn}
               onChange={(event) => onChange("isbn", event.target.value)}
+              className={fieldClass("isbn")}
             />
+            {errors?.isbn && (
+              <p className="text-xs text-destructive">{errors.isbn}</p>
+            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="stock">Stock</Label>
@@ -61,15 +87,23 @@ function LibroDialog({ open, onOpenChange, isEditing, form, onChange, onSave }) 
               min="0"
               value={form.stock}
               onChange={(event) => onChange("stock", Number(event.target.value))}
+              className={fieldClass("stock")}
             />
+            {errors?.stock && (
+              <p className="text-xs text-destructive">{errors.stock}</p>
+            )}
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={saving}
+          >
+            {uiText.actions.cancel}
           </Button>
-          <Button className="bg-ink text-paper" onClick={onSave}>
-            Guardar
+          <Button className="bg-ink text-paper" onClick={onSave} disabled={saving}>
+            {uiText.actions.save}
           </Button>
         </DialogFooter>
       </DialogContent>

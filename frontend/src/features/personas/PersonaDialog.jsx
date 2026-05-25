@@ -10,8 +10,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { uiText } from "@/config/uiText";
 
-function PersonaDialog({ open, onOpenChange, isEditing, form, onChange, onSave }) {
+function PersonaDialog({
+  open,
+  onOpenChange,
+  isEditing,
+  form,
+  errors,
+  saving,
+  onChange,
+  onSave,
+}) {
+  const fieldClass = (field) =>
+    errors?.[field]
+      ? "border-destructive focus-visible:ring-destructive/40"
+      : "";
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
@@ -22,11 +36,11 @@ function PersonaDialog({ open, onOpenChange, isEditing, form, onChange, onSave }
             </div>
             <div>
               <DialogTitle>
-                {isEditing ? "Editar persona" : "Nueva persona"}
+                {isEditing
+                  ? uiText.dialogs.persona.titleEdit
+                  : uiText.dialogs.persona.titleNew}
               </DialogTitle>
-              <DialogDescription>
-                Agrega o actualiza datos de contacto.
-              </DialogDescription>
+              <DialogDescription>{uiText.dialogs.persona.description}</DialogDescription>
             </div>
           </div>
         </DialogHeader>
@@ -37,7 +51,11 @@ function PersonaDialog({ open, onOpenChange, isEditing, form, onChange, onSave }
               id="nombre"
               value={form.nombre}
               onChange={(event) => onChange("nombre", event.target.value)}
+              className={fieldClass("nombre")}
             />
+            {errors?.nombre && (
+              <p className="text-xs text-destructive">{errors.nombre}</p>
+            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="apellido">Apellido</Label>
@@ -45,7 +63,11 @@ function PersonaDialog({ open, onOpenChange, isEditing, form, onChange, onSave }
               id="apellido"
               value={form.apellido}
               onChange={(event) => onChange("apellido", event.target.value)}
+              className={fieldClass("apellido")}
             />
+            {errors?.apellido && (
+              <p className="text-xs text-destructive">{errors.apellido}</p>
+            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
@@ -54,7 +76,11 @@ function PersonaDialog({ open, onOpenChange, isEditing, form, onChange, onSave }
               type="email"
               value={form.email}
               onChange={(event) => onChange("email", event.target.value)}
+              className={fieldClass("email")}
             />
+            {errors?.email && (
+              <p className="text-xs text-destructive">{errors.email}</p>
+            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="telefono">Telefono</Label>
@@ -62,15 +88,23 @@ function PersonaDialog({ open, onOpenChange, isEditing, form, onChange, onSave }
               id="telefono"
               value={form.telefono}
               onChange={(event) => onChange("telefono", event.target.value)}
+              className={fieldClass("telefono")}
             />
+            {errors?.telefono && (
+              <p className="text-xs text-destructive">{errors.telefono}</p>
+            )}
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={saving}
+          >
+            {uiText.actions.cancel}
           </Button>
-          <Button className="bg-ink text-paper" onClick={onSave}>
-            Guardar
+          <Button className="bg-ink text-paper" onClick={onSave} disabled={saving}>
+            {uiText.actions.save}
           </Button>
         </DialogFooter>
       </DialogContent>
