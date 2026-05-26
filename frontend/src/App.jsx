@@ -1,14 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import LibrosSection from "@/features/libros/LibrosSection";
-import LibroDialog from "@/features/libros/LibroDialog";
-import PersonasSection from "@/features/personas/PersonasSection";
-import PersonaDialog from "@/features/personas/PersonaDialog";
-import PrestamosSection from "@/features/prestamos/PrestamosSection";
-import PrestamoDialog from "@/features/prestamos/PrestamoDialog";
-import { useLibros } from "@/features/libros/useLibros";
-import { usePersonas } from "@/features/personas/usePersonas";
-import { usePrestamos } from "@/features/prestamos/usePrestamos";
+import { LibrosSection, LibroDialog, useLibros } from "@/modules/libros";
+import { PersonasSection, PersonaDialog, usePersonas } from "@/modules/personas";
+import { PrestamosSection, PrestamoDialog, usePrestamos } from "@/modules/prestamos";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { uiText } from "@/config/uiText";
 
