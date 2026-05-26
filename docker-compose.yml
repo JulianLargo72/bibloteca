@@ -1,0 +1,76 @@
+services:
+  # Servicio de Base de Datos MySQL
+  db:
+    image: mysql:8.0
+    container_name: bibloteca_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: bibloteca
+      MYSQL_USER: bibloteca_user
+      MYSQL_PASSWORD: bibloteca_pass
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - bibloteca_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 5
+
+  # Servicio Backend (PHP + Apache)
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: bibloteca_backend
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_NAME: bibloteca
+      DB_USER: bibloteca_user
+      DB_PASS: bibloteca_pass
+      CORS_ORIGIN: http://localhost:5173
+    ports:
+      - "8080:80"
+    volumes:
+      - ./backend:/var/www/html
+    networks:
+      - bibloteca_network
+
+  # Servicio Frontend (React + Vite)
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:8080/api
+    container_name: bibloteca_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - bibloteca_network
+    environment:
+      - VITE_API_URL=http://localhost:8080/api
+      - NODE_ENV=development
+
+volumes:
+  db_data:
+
+networks:
+  bibloteca_network:
+    driver: bridge
